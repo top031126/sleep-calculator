@@ -5,50 +5,274 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>렘수면 기상시간 계산기</title>
   <style>
-    :root{--bg:#f7f7fb;--card:#fff;--txt:#222;--sub:#555;--accent:#4c6ef5;--accent-active:#3b5bdb;--muted:#eaf0ff;--border:#e6e6ef;--shadow:0 6px 20px rgba(0,0,0,.06)}
-    body.dark{--bg:#0f1117;--card:#161a23;--txt:#e6e6e6;--sub:#a0a0a0;--accent:#7aa2f7;--accent-active:#5c86d6;--muted:#2b2f3a;--border:#222532;--shadow:0 6px 20px rgba(0,0,0,.35)}
-    *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,sans-serif;background:var(--bg);color:var(--txt)}
-    .container{max-width:960px;margin:24px auto;padding:0 16px}.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
-    h1{font-size:22px;margin:0 0 6px;color:var(--accent)}.subtitle{color:var(--sub);margin:6px 0 10px}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.grow{flex:1}
-    label{font-size:14px;color:var(--sub)}select,input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--txt)}
-    .btn{padding:10px 14px;border-radius:10px;border:1px solid transparent;font-weight:700;cursor:pointer}.btn-primary{background:var(--accent);color:#fff}.btn-primary:active{background:var(--accent-active)}.btn-ghost{background:var(--muted);color:var(--accent)}
-    .toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:10px 0 0}.switch{display:flex;align-items:center;gap:8px}.pill{display:inline-flex;gap:10px;align-items:center;padding:8px 10px;border-radius:999px;background:var(--muted);color:var(--accent);font-weight:700}
-    table{width:100%;border-collapse:separate;border-spacing:0;margin-top:10px;font-size:14px}thead th{text-align:center;color:var(--sub);font-weight:700;border-bottom:1px solid var(--border);padding:10px 8px}
-    tbody td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--border)}tbody tr:last-child td{border-bottom:0}.section-title{font-weight:700;margin:4px 0 8px;color:var(--txt)}.hint{font-size:12px;color:var(--sub)}
+    /* ---- 라이트/다크 공통 색 ---- */
+    :root{
+      --bg:#f7f7fb; --card:#ffffff; --txt:#222; --sub:#555;
+      --accent:#4c6ef5; --accent-active:#3b5bdb; --muted:#eaf0ff;
+      --border:#e6e6ef; --shadow:0 6px 20px rgba(0,0,0,.06);
+      /* 행 색상(투명 배경: 다크/라이트 모두에 보기 좋게) */
+      --ok: rgba(46, 204, 113, 0.16);   /* 초록 */
+      --bad: rgba(231, 76, 60, 0.16);   /* 빨강 */
+      --over: rgba(52, 152, 219, 0.16); /* 파랑 */
+    }
+    body.dark{
+      --bg:#0f1117; --card:#161a23; --txt:#e6e6e6; --sub:#a0a0a0;
+      --accent:#7aa2f7; --accent-active:#5c86d6; --muted:#2b2f3a;
+      --border:#222532; --shadow:0 6px 20px rgba(0,0,0,.35);
+      --ok: rgba(46, 204, 113, 0.18);
+      --bad: rgba(231, 76, 60, 0.18);
+      --over: rgba(52, 152, 219, 0.18);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Malgun Gothic,sans-serif;
+      background:var(--bg); color:var(--txt);
+    }
+    .container{max-width:960px; margin:24px auto; padding:0 16px;}
+    .card{
+      background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:var(--shadow);
+    }
+    h1{font-size:22px; margin:0 0 6px; color:var(--accent)}
+    .subtitle{color:var(--sub); margin:6px 0 10px}
+    .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+    .grow{flex:1}
+    label{font-size:14px; color:var(--sub)}
+    select,input{width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:transparent; color:var(--txt)}
+    .btn{padding:10px 14px; border-radius:10px; border:1px solid transparent; font-weight:700; cursor:pointer;}
+    .btn-primary{background:var(--accent); color:#fff}
+    .btn-primary:active{background:var(--accent-active)}
+    .btn-ghost{background:var(--muted); color:var(--accent)}
+    .toolbar{display:flex; gap:10px; align-items:center; justify-content:space-between; margin:10px 0 0}
+    .switch{display:flex; align-items:center; gap:8px}
+    .pill{display:inline-flex; gap:10px; align-items:center; padding:8px 10px; border-radius:999px; background:var(--muted); color:var(--accent); font-weight:700}
+
+    table{width:100%; border-collapse:separate; border-spacing:0; margin-top:10px; font-size:14px}
+    thead th{ text-align:center; color:var(--sub); font-weight:700; border-bottom:1px solid var(--border); padding:10px 8px}
+    tbody td{ padding:10px 8px; text-align:center; border-bottom:1px solid var(--border)}
+    tbody tr:last-child td{border-bottom:0}
+
+    .section-title{font-weight:700; margin:4px 0 8px; color:var(--txt)}
+    .hint{font-size:12px; color:var(--sub)}
+
+    /* ---- 행 하이라이트 클래스 ---- */
+    tr.ok   { background: var(--ok); }
+    tr.bad  { background: var(--bad); }
+    tr.over { background: var(--over); }
+
+    /* 작은 범례 뱃지 */
+    .legend{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:8px; color:var(--sub); font-size:12px}
+    .chip{display:inline-flex; align-items:center; gap:6px}
+    .dot{width:12px; height:12px; border-radius:50%}
+    .dot.ok{background:#2ecc71}
+    .dot.bad{background:#e74c3c}
+    .dot.over{background:#3498db}
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- 헤더 -->
     <div class="card">
       <h1>렘수면 기상시간 계산기</h1>
       <div class="subtitle">렘수면 주기(기본 90분) + 입면지연(기본 15분) 기준으로 깨기 좋은 시간을 추천해요.</div>
-      <div class="toolbar"><div class="pill" id="clock">현재시간: ...</div><div class="switch"><label for="theme">테마</label><select id="theme"><option value="light">라이트</option><option value="dark">다크</option></select></div></div>
+      <div class="toolbar">
+        <div class="pill" id="clock">현재시간: ...</div>
+        <div class="switch">
+          <label for="theme">테마</label>
+          <select id="theme">
+            <option value="light">라이트</option>
+            <option value="dark">다크</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <div class="card" style="margin-top:14px"><div class="section-title">개인화 옵션</div><div class="row">
-      <div class="grow"><label>표시할 주기 범위 (회)</label><div class="row"><input id="cycleMin" type="number" min="1" max="12" value="2" style="width:120px"/><span>~</span><input id="cycleMax" type="number" min="1" max="12" value="8" style="width:120px"/></div><div class="hint">예: 2~8회</div></div>
-      <div><label>주기 길이(분)</label><input id="cycleMinLen" type="number" min="60" max="120" step="5" value="90"/><div class="hint">일반적으로 90분 전후</div></div>
-      <div><label>입면지연(분)</label><input id="latency" type="number" min="0" max="60" step="5" value="15"/><div class="hint">잠드는 데 걸리는 시간</div></div>
-    </div></div>
-    <div class="card" style="margin-top:14px"><div class="row" style="justify-content:space-between"><div class="section-title">① 지금 자는 시간으로 계산</div><button class="btn btn-primary" id="btnNow">지금 기준으로 추천 보기</button></div>
-      <div id="nowResultTitle" class="subtitle" style="margin-top:8px"></div><div class="table-wrap" id="nowTableWrap"></div>
-      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
-      <div class="section-title">② 원하는 취침 시간으로 계산</div><div class="row"><div><label>오전/오후</label><select id="ampm"><option>오전</option><option selected>오후</option></select></div>
-      <div><label>시</label><select id="hour"></select></div><div><label>분</label><select id="minute"></select></div>
-      <div style="margin-left:auto"><button class="btn btn-ghost" id="btnInput">입력한 시간 기준으로 추천 보기</button></div></div>
-      <div id="inResultTitle" class="subtitle" style="margin-top:8px"></div><div class="table-wrap" id="inTableWrap"></div>
+
+    <!-- 옵션 -->
+    <div class="card" style="margin-top:14px">
+      <div class="section-title">개인화 옵션</div>
+      <div class="row">
+        <div class="grow">
+          <label>표시할 주기 범위 (회)</label>
+          <div class="row">
+            <input id="cycleMin" type="number" min="1" max="12" value="2" style="width:120px" />
+            <span>~</span>
+            <input id="cycleMax" type="number" min="1" max="12" value="8" style="width:120px" />
+          </div>
+          <div class="hint">예: 2~8회</div>
+        </div>
+        <div>
+          <label>주기 길이(분)</label>
+          <input id="cycleMinLen" type="number" min="60" max="120" step="5" value="90" />
+          <div class="hint">일반적으로 90분 전후</div>
+        </div>
+        <div>
+          <label>입면지연(분)</label>
+          <input id="latency" type="number" min="0" max="60" step="5" value="15" />
+          <div class="hint">잠드는 데 걸리는 시간</div>
+        </div>
+      </div>
+      <!-- 범례 -->
+      <div class="legend">
+        <span class="chip"><span class="dot ok"></span> 권장(초록): 7–9시간</span>
+        <span class="chip"><span class="dot bad"></span> 부족(빨강): 7시간 미만</span>
+        <span class="chip"><span class="dot over"></span> 과다(파랑): 9시간 초과</span>
+      </div>
+    </div>
+
+    <!-- 액션 -->
+    <div class="card" style="margin-top:14px">
+      <div class="row" style="justify-content:space-between">
+        <div class="section-title">① 지금 자는 시간으로 계산</div>
+        <button class="btn btn-primary" id="btnNow">지금 기준으로 추천 보기</button>
+      </div>
+      <div id="nowResultTitle" class="subtitle" style="margin-top:8px"></div>
+      <div class="table-wrap" id="nowTableWrap"></div>
+
+      <hr style="border:none; border-top:1px solid var(--border); margin:16px 0">
+
+      <div class="section-title">② 원하는 취침 시간으로 계산</div>
+      <div class="row">
+        <div>
+          <label>오전/오후</label>
+          <select id="ampm">
+            <option>오전</option>
+            <option selected>오후</option>
+          </select>
+        </div>
+        <div>
+          <label>시</label>
+          <select id="hour"></select>
+        </div>
+        <div>
+          <label>분</label>
+          <select id="minute"></select>
+        </div>
+        <div style="margin-left:auto">
+          <button class="btn btn-ghost" id="btnInput">입력한 시간 기준으로 추천 보기</button>
+        </div>
+      </div>
+      <div id="inResultTitle" class="subtitle" style="margin-top:8px"></div>
+      <div class="table-wrap" id="inTableWrap"></div>
     </div>
   </div>
-<script>
-function fmt(d){const p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`}
-const clockEl=document.getElementById('clock');function tick(){const n=new Date(),yo=['일','월','화','수','목','금','토'][n.getDay()];clockEl.textContent=`현재시간: ${fmt(n)} (${yo})`}tick();setInterval(tick,1e3);
-const themeSel=document.getElementById('theme'),saved=localStorage.getItem('sleep_theme')||'light';themeSel.value=saved;document.body.classList.toggle('dark',saved==='dark');
-themeSel.addEventListener('change',()=>{const v=themeSel.value;document.body.classList.toggle('dark',v==='dark');localStorage.setItem('sleep_theme',v)});
-const hourSel=document.getElementById('hour'),minuteSel=document.getElementById('minute');for(let i=1;i<=12;i++){const o=document.createElement('option');o.value=String(i);o.textContent=i;hourSel.appendChild(o)}hourSel.value='11';
-for(let i=0;i<60;i+=10){const o=document.createElement('option');o.value=String(i).padStart(2,'0');o.textContent=o.value;minuteSel.appendChild(o)}minuteSel.value='00';
-function readOptions(){const a=Math.max(1,Math.min(12,parseInt(document.getElementById('cycleMin').value||'2'))),b=Math.max(a,Math.min(12,parseInt(document.getElementById('cycleMax').value||'8'))),c=Math.max(60,Math.min(120,parseInt(document.getElementById('cycleMinLen').value||'90'))),d=Math.max(0,Math.min(60,parseInt(document.getElementById('latency').value||'15')));return{cycleMin:a,cycleMax:b,cycleLen:c,latency:d}}
-function buildTable(bt,{cycleMin,cycleMax,cycleLen,latency}){const rows=[];for(let c=cycleMin;c<=cycleMax;c++){const m=c*cycleLen+latency,w=new Date(bt.getTime()+m*6e4),hrs=Math.round(m/6)/10;rows.push([c,hrs,fmt(w)])}return rows}
-function renderTable(rows,m){if(!rows.length){m.innerHTML='';return}const th=`<thead><tr><th>주기(회)</th><th>총수면시간(시간)</th><th>기상시각</th></tr></thead>`,tb=rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');m.innerHTML=`<table>${th}<tbody>${tb}</tbody></table>`}
-document.getElementById('btnNow').addEventListener('click',()=>{const o=readOptions(),n=new Date(),yo=['일','월','화','수','목','금','토'][n.getDay()];document.getElementById('nowResultTitle').textContent=`지금(${fmt(n)}·${yo}) 자면 좋은 기상 시간`;renderTable(buildTable(n,o),document.getElementById('nowTableWrap'))});
-document.getElementById('btnInput').addEventListener('click',()=>{const ap=document.getElementById('ampm').value;let h=parseInt(hourSel.value,10),m=parseInt(minuteSel.value,10);if(ap==='오전'){if(h===12)h=0}else if(h!==12)h+=12;const now=new Date(),t=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0,0);if(t.getTime()<=now.getTime())t.setDate(t.getDate()+1);const o=readOptions(),yo=['일','월','화','수','목','금','토'][t.getDay()];document.getElementById('inResultTitle').textContent=`${fmt(t)} (${yo}) 에 자면 좋은 기상 시간`;renderTable(buildTable(t,o),document.getElementById('inTableWrap'))});
-</script>
-</body></html>
+
+  <script>
+    /* ===== 기준값: 권장 수면 범위(시간) — 여기 숫자만 바꾸면 규칙 변경 가능 ===== */
+    const RECOMMEND_MIN = 7;  // 7시간 이상
+    const RECOMMEND_MAX = 9;  // 9시간 이하
+
+    /* ===== 공통 유틸 ===== */
+    function fmt(d){
+      const p=n=>String(n).padStart(2,'0');
+      return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+    }
+
+    /* 현재시간 시계 */
+    const clockEl = document.getElementById('clock');
+    function tick(){
+      const now = new Date();
+      const yoil = ['일','월','화','수','목','금','토'][now.getDay()];
+      clockEl.textContent = `현재시간: ${fmt(now)} (${yoil})`;
+    }
+    tick(); setInterval(tick, 1000);
+
+    /* 테마 */
+    const themeSel = document.getElementById('theme');
+    const savedTheme = localStorage.getItem('sleep_theme') || 'light';
+    themeSel.value = savedTheme;
+    document.body.classList.toggle('dark', savedTheme==='dark');
+    themeSel.addEventListener('change', ()=>{
+      const v = themeSel.value;
+      document.body.classList.toggle('dark', v==='dark');
+      localStorage.setItem('sleep_theme', v);
+    });
+
+    /* 시/분 콤보 채우기 */
+    const hourSel = document.getElementById('hour');
+    const minuteSel = document.getElementById('minute');
+    for(let i=1;i<=12;i++){
+      const opt=document.createElement('option'); opt.value=String(i); opt.textContent=i; hourSel.appendChild(opt);
+    }
+    hourSel.value = '11';
+    for(let i=0;i<60;i+=10){
+      const opt=document.createElement('option'); opt.value=String(i).padStart(2,'0'); opt.textContent=opt.value; minuteSel.appendChild(opt);
+    }
+    minuteSel.value='00';
+
+    /* 옵션 읽기 */
+    function readOptions(){
+      const cycleMin = Math.max(1, Math.min(12, parseInt(document.getElementById('cycleMin').value || '2')));
+      const cycleMax = Math.max(cycleMin, Math.min(12, parseInt(document.getElementById('cycleMax').value || '8')));
+      const cycleLen = Math.max(60, Math.min(120, parseInt(document.getElementById('cycleMinLen').value || '90')));
+      const latency  = Math.max(0, Math.min(60, parseInt(document.getElementById('latency').value || '15')));
+      return {cycleMin, cycleMax, cycleLen, latency};
+    }
+
+    /* 표 데이터 만들기 */
+    function buildTable(bedtime, {cycleMin, cycleMax, cycleLen, latency}){
+      const rows = [];
+      for(let c=cycleMin; c<=cycleMax; c++){
+        const totalMin = c*cycleLen + latency;           // 총 수면시간(분)
+        const wake = new Date(bedtime.getTime() + totalMin*60*1000);
+        const totalHours = Math.round((totalMin/60)*10)/10; // 소수1자리
+        rows.push([c, totalHours, fmt(wake)]);
+      }
+      return rows; // [주기, 총수면시간(시간), 기상시각]
+    }
+
+    /* 행 클래스 결정(빨강/초록/파랑) */
+    function classify(hours){
+      if(hours < RECOMMEND_MIN) return 'bad';    // 부족
+      if(hours > RECOMMEND_MAX) return 'over';   // 과다
+      return 'ok';                                // 권장~충분
+    }
+
+    /* 표 렌더링(색상 적용) */
+    function renderTable(rows, mount){
+      if(!rows.length){ mount.innerHTML=''; return; }
+      const thead = `<thead><tr><th>주기(회)</th><th>총수면시간(시간)</th><th>기상시각</th></tr></thead>`;
+      const body = rows.map(r=>{
+        const cls = classify(r[1]); // r[1] = 총수면시간(시간)
+        return `<tr class="${cls}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`;
+      }).join('');
+      mount.innerHTML = `<table>${thead}<tbody>${body}</tbody></table>`;
+    }
+
+    /* 지금 자면 */
+    const btnNow = document.getElementById('btnNow');
+    const nowTitle = document.getElementById('nowResultTitle');
+    const nowWrap = document.getElementById('nowTableWrap');
+    btnNow.addEventListener('click', ()=>{
+      const opts = readOptions();
+      const now = new Date();
+      const yoil = ['일','월','화','수','목','금','토'][now.getDay()];
+      nowTitle.textContent = `지금(${fmt(now)}·${yoil}) 자면 좋은 기상 시간`;
+      renderTable(buildTable(now, opts), nowWrap);
+    });
+
+    /* 원하는 시간으로 */
+    const btnInput = document.getElementById('btnInput');
+    const inTitle = document.getElementById('inResultTitle');
+    const inWrap = document.getElementById('inTableWrap');
+    btnInput.addEventListener('click', ()=>{
+      const ampm = document.getElementById('ampm').value;
+      let hh = parseInt(hourSel.value,10);
+      let mm = parseInt(minuteSel.value,10);
+      // 12시간제 -> 24시간제
+      if(ampm === '오전'){
+        if(hh === 12) hh = 0;
+      }else{
+        if(hh !== 12) hh += 12;
+      }
+      const now = new Date();
+      const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0, 0);
+      if(target.getTime() <= now.getTime()) target.setDate(target.getDate()+1);
+
+      const opts = readOptions();
+      const rows = buildTable(target, opts);
+      const yoil = ['일','월','화','수','목','금','토'][target.getDay()];
+      inTitle.textContent = `${fmt(target)} (${yoil}) 에 자면 좋은 기상 시간`;
+      renderTable(rows, inWrap);
+    });
+  </script>
+</body>
+</html>
