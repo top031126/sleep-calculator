@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>렘수면 기상시간 계산기</title>
   <style>
-    /* ---- 라이트/다크 공통 색 ---- */
     :root{
       --bg:#f7f7fb; --card:#ffffff; --txt:#222; --sub:#555;
       --accent:#4c6ef5; --accent-active:#3b5bdb; --muted:#eaf0ff;
       --border:#e6e6ef; --shadow:0 6px 20px rgba(0,0,0,.06);
-      /* 행 색상 */
       --ok: rgba(46, 204, 113, 0.16);   /* 초록 */
       --bad: rgba(231, 76, 60, 0.16);   /* 빨강 */
       --over: rgba(52, 152, 219, 0.16); /* 파랑 */
@@ -54,7 +52,6 @@
     .section-title{font-weight:700; margin:4px 0 8px; color:var(--txt)}
     .hint{font-size:12px; color:var(--sub)}
 
-    /* 행 하이라이트 */
     tr.ok   { background: var(--ok); }
     tr.bad  { background: var(--bad); }
     tr.over { background: var(--over); }
@@ -69,10 +66,9 @@
 </head>
 <body>
   <div class="container">
-    <!-- 헤더 -->
     <div class="card">
       <h1>렘수면 기상시간 계산기</h1>
-      <div class="subtitle">렘수면 주기(90분) + 입면지연(15분) 기준으로 깨기 좋은 시간을 추천해요.</div>
+      <div class="subtitle">렘수면 주기(90분) + 입면지연(15분) 기준</div>
       <div class="toolbar">
         <div class="pill" id="clock">현재시간: ...</div>
         <div class="switch">
@@ -85,7 +81,6 @@
       </div>
     </div>
 
-    <!-- 옵션 -->
     <div class="card" style="margin-top:14px">
       <div class="section-title">개인화 옵션</div>
       <div class="row">
@@ -101,22 +96,19 @@
         <div>
           <label>주기 길이(분)</label>
           <input id="cycleMinLen" type="number" min="60" max="120" step="5" value="90" />
-          <div class="hint">일반적으로 90분 전후</div>
         </div>
         <div>
           <label>입면지연(분)</label>
           <input id="latency" type="number" min="0" max="60" step="5" value="15" />
-          <div class="hint">잠드는 데 걸리는 시간</div>
         </div>
       </div>
       <div class="legend">
-        <span class="chip"><span class="dot ok"></span> 권장(초록): 7–9시간</span>
+        <span class="chip"><span class="dot ok"></span> 권장(초록): 7–10시간</span>
         <span class="chip"><span class="dot bad"></span> 부족(빨강): 7시간 미만</span>
-        <span class="chip"><span class="dot over"></span> 과다(파랑): 9시간 초과</span>
+        <span class="chip"><span class="dot over"></span> 초과(파랑): 10시간 초과</span>
       </div>
     </div>
 
-    <!-- 계산 -->
     <div class="card" style="margin-top:14px">
       <div class="row" style="justify-content:space-between">
         <div class="section-title">① 지금 자는 시간으로 계산</div>
@@ -154,9 +146,8 @@
   </div>
 
   <script>
-    const RECOMMEND_MIN = 7;
-    const RECOMMEND_MAX = 9;
-
+    const MIN_HOURS = 7;   // 부족 기준
+    const MAX_OK_HOURS = 10; // 권장 최대값 (10시간까지)
     function fmt(d){
       const p=n=>String(n).padStart(2,'0');
       return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
@@ -200,8 +191,8 @@
     }
 
     function classify(hours){
-      if(hours < RECOMMEND_MIN) return 'bad';
-      if(hours > RECOMMEND_MAX) return 'over';
+      if(hours < MIN_HOURS) return 'bad';
+      if(hours > MAX_OK_HOURS) return 'over';
       return 'ok';
     }
 
@@ -245,4 +236,3 @@
   </script>
 </body>
 </html>
-
